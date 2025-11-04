@@ -11,12 +11,14 @@ from pathlib import Path
 from analyzer.code_metrics import CodeMetrics
 from analyzer.security_scanner import SecurityScanner
 from analyzer.performance_analyzer import PerformanceAnalyzer
+from analyzer.style_checker import StyleChecker
 
 class CodeAnalyzer:
     def __init__(self):
         self.metrics = CodeMetrics()
         self.security = SecurityScanner()
         self.performance = PerformanceAnalyzer()
+        self.style = StyleChecker()
     
     def analyze_file(self, file_path):
         """Analyze a single Python file"""
@@ -29,6 +31,7 @@ class CodeAnalyzer:
                 'metrics': self.metrics.analyze(code),
                 'security': self.security.scan(code),
                 'performance': self.performance.check(code),
+                'style': self.style.check_style(code),
                 'overall_score': 0
             }
             
@@ -67,6 +70,9 @@ class CodeAnalyzer:
         # Deduct for performance issues
         score -= len(analysis['performance']['issues']) * 3
         
+        # Deduct for style violations
+        score -= len(analysis['style']['violations']) * 2
+        
         # Reward for good metrics
         if analysis['metrics']['maintainability_index'] > 80:
             score += 10
@@ -103,6 +109,7 @@ class CodeAnalyzer:
             print(f"   ⭐ Maintainability: {result['metrics']['maintainability_index']:.1f}")
             print(f"   🔒 Security: {len(result['security']['issues'])} issues ({result['security']['risk_level']} risk)")
             print(f"   ⚡ Performance: {len(result['performance']['issues'])} issues")
+            print(f"   🎨 Style: {len(result['style']['violations'])} violations")
             
             # Show security issues if any
             for issue in result['security']['issues']:
@@ -111,6 +118,10 @@ class CodeAnalyzer:
             # Show performance issues if any
             for issue in result['performance']['issues']:
                 print(f"      🐢 {issue}")
+            
+            # Show style violations if any
+            for violation in result['style']['violations'][:3]:  # Show first 3
+                print(f"      🎯 {violation}")
 
 def main():
     parser = argparse.ArgumentParser(description='AI-Powered Code Analyzer')
